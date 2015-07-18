@@ -64,11 +64,13 @@ class BaseSampler(object):
             self.device_compute_units = self.device.max_compute_units
 
         self.cl_mode = cl_mode
+        self.cutoff = cutoff
         self.data = []
         self.N = 0 # number of data points
 
         # sampling parameters
         self.sample_size = sample_size
+        self.output_to_stdout = output_to_stdout
         self.iteration = 0
         self.thining = 1
         self.burnin = 0
@@ -87,16 +89,17 @@ class BaseSampler(object):
         
         self.debug_mumble = debug_mumble
         
-    def read_csv(self, filepath, header = True):
+    def read_csv(self, filepath, obs_vars = ['obs'], header = True):
         """Read data from a csv file.
         """
         # determine if the type file is gzip
         filetype, encoding = mimetypes.guess_type(filepath)
         if encoding == 'gzip':
-            self.data = pd.read_csv(filepath, compression=True)
+            self.data = pd.read_csv(filepath, compression='gzip', nrows=self.cutoff)
         else:
-            self.data = pd.read_csv(filepath)
+            self.data = pd.read_csv(filepath, nrows=self.cutoff)
 
+        self.data = self.data[obs_vars]
         self.N = self.data.shape[0]
 
         # set up references to the file paths
@@ -104,7 +107,6 @@ class BaseSampler(object):
         self.source_dirname = os.path.dirname(filepath) + '/'
         self.source_filename = os.path.basename(filepath).split('.')[0]
 
-        self.output_fp = gzip.open(self.source_filepath + '-{0}-samples.csv.gz'.format(type(self).__name__), 'w')
         return True
 
     def direct_read_data(self, data):
@@ -157,7 +159,7 @@ class BaseSampler(object):
 
     def no_improvement(self, threshold=100):
         if len(self.best_diff) == 0: return False
-        if self.no_improv > threshold or np.mean(self.best_diff[-threshold:]) < .1:
+        if self.no_improv > threshold:
             print('Too little improvement in loglikelihood for %s iterations - Abort searching' % threshold, file=sys.stderr)
             return True
         return False
