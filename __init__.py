@@ -97,7 +97,7 @@ class BaseSampler(object):
         if encoding == 'gzip':
             self.data = pd.read_csv(filepath, compression='gzip')
         else:
-            self.data = pd.read_csv(filepath, nrows=self.cutoff)
+            self.data = pd.read_csv(filepath)
 
         self.original_data = copy.deepcopy(self.data)
         if self.cutoff:
