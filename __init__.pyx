@@ -60,7 +60,8 @@ def lognormalize(np.ndarray[np.float_t, ndim=1] x, double temp = 1):
 class BaseSampler(object):
 
     def __init__(self, cl_mode=False, cl_device=None, int sample_size=1000, cutoff=None,
-                 output_to_stdout=False, record_best=False, annealing = False, debug_mumble = False):
+                 output_to_stdout=False, search=False, int search_tolerance = 100,
+                 annealing = False, debug_mumble = False):
         """Initialize the class.
         """
         if cl_mode:
@@ -103,9 +104,10 @@ class BaseSampler(object):
 
         # stochastic search parameters
         self.best_sample = (None, None) # (sample, loglikelihood)
-        self.record_best = record_best
+        self.search = search
         self.best_diff = []
         self.no_improv = 0
+        self.search_tolerance = search_tolerance
        
         # annealing parameters, if used
         self.annealing = annealing
@@ -185,10 +187,10 @@ class BaseSampler(object):
             self.no_improv += 1
             return False
 
-    def no_improvement(self, int threshold=100):
+    def no_improvement(self):
         if len(self.best_diff) == 0: return False
-        if self.no_improv > threshold:
-            print('Too little improvement in loglikelihood for %s iterations - Abort searching' % threshold, file=sys.stderr)
+        if self.no_improv > self.search_tolerance:
+            print('Too little improvement in loglikelihood for %s iterations - Abort searching' % self.search_tolerance, file=sys.stderr)
             return True
         return False
 
