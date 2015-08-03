@@ -7,6 +7,7 @@ import cython; cimport cython
 import pandas as pd
 import sys, copy, random, mimetypes, os.path, gzip
 from time import time
+from datetime import datetime
 
 from libc.math cimport exp, log, pow
 from libc.stdlib cimport rand, RAND_MAX
@@ -137,6 +138,10 @@ class BaseSampler(object):
         self.source_dirname = os.path.dirname(filepath) + '/'
         self.source_filename = os.path.basename(filepath).split('.')[0]
 
+        # set up the name of the output sample file
+        self.sample_fn = self.source_dirname + '{0}-{1}-samples-{2}.csv.gz'.format(self.source_filename,
+                                                                                   self.__class__.__name__,
+                                                                                   str(datetime.now()).split('.')[0].replace(' ', '-'))
         return True
 
     def direct_read_data(self, data):
