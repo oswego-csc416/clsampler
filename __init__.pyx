@@ -61,7 +61,8 @@ def lognormalize(np.ndarray[np.float_t, ndim=1] x, double temp = 1):
 class BaseSampler(object):
 
     def __init__(self, cl_mode=False, cl_device=None, int sample_size=1000, cutoff=None,
-                 output_to_stdout=False, search=False, int search_tolerance = 100,
+                 output_to_stdout=False,
+                 search=False, int search_tolerance = 100, search_data_fit_only = False,
                  annealing = False, debug_mumble = False):
         """Initialize the class.
         """
@@ -104,8 +105,9 @@ class BaseSampler(object):
         self.total_time = 0
 
         # stochastic search parameters
-        self.best_sample = (None, None) # (sample, loglikelihood)
+        self.best_sample = (None, None, None) # (sample, logprobability of model, loglikelihood of data)
         self.search = search
+        self.search_data_fit_only = search_data_fit_only
         self.best_diff = []
         self.no_improv = 0
         self.search_tolerance = search_tolerance
@@ -174,19 +176,25 @@ class BaseSampler(object):
         """Save the given sample as the best sample if it yields
         a larger log-likelihood of data than the current best.
         """
-        new_logprob = self._logprob(sample)
+        new_logprob_model, new_loglik_data = self._logprob(sample)
         # if there's no best sample recorded yet
-        if self.best_sample[0] is None and self.best_sample[1] is None:
-            self.best_sample = (sample, new_logprob)
-            if self.debug_mumble: print('Initial sample generated, loglik: {0}'.format(new_logprob), file=sys.stderr)
+        if self.best_sample[0] is None:
+            self.best_sample = (sample, new_logprob_model, new_loglik_data)
+            if self.debug_mumble: print('Initial sample generated, logprob of model: {0}, loglik: {1}'.format(new_logprob_model, new_loglik_data),
+                                        file=sys.stderr)
             return
 
         # if there's a best sample
-        if new_logprob > self.best_sample[1]:
+        if self.search_data_fit_only:
+            better = new_loglik_data - self.best_sample[2]
+        else:
+            better = new_logprob_model + new_loglik_data - (self.best_sample[1] + self.best_sample[2])
+        if better > 0:
             self.no_improv = 0
-            self.best_diff.append(new_logprob - self.best_sample[1])
-            self.best_sample = (copy.deepcopy(sample), new_logprob)
-            if self.debug_mumble: print('New best sample found, loglik: {0}'.format(new_logprob), file=sys.stderr)
+            self.best_diff.append(better)
+            self.best_sample = (copy.deepcopy(sample), new_logprob_model, new_loglik_data)
+            if self.debug_mumble: print('New best sample found, logprob of model: {0} loglik: {1}'.format(new_logprob_model, new_loglik_data),
+                                        file=sys.stderr)
             return True
         else:
             self.no_improv += 1
@@ -203,4 +211,4 @@ class BaseSampler(object):
         """Compute the logliklihood of data given a sample. This method
         does nothing in the base class.
         """
-        return 0
+        return 0, 0
