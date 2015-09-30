@@ -172,7 +172,7 @@ class BaseSampler(object):
         """
         return
 
-    def auto_save_sample(self, sample):
+    def better_sample(self, sample):
         """Save the given sample as the best sample if it yields
         a larger log-likelihood of data than the current best.
         """
@@ -180,6 +180,7 @@ class BaseSampler(object):
         # if there's no best sample recorded yet
         if self.best_sample[0] is None:
             self.best_sample = (sample, new_logprob_model, new_loglik_data)
+            self.logprob_model, self.loglik_data = new_logprob_model, new_loglik_data            
             if self.debug_mumble: print('Initial sample generated, logprob of model: {0}, loglik: {1}'.format(new_logprob_model, new_loglik_data),
                                         file=sys.stderr)
             return
@@ -192,6 +193,7 @@ class BaseSampler(object):
         if better > 0:
             self.no_improv = 0
             self.best_diff.append(better)
+            self.logprob_model, self.loglik_data = new_logprob_model, new_loglik_data            
             self.best_sample = (copy.deepcopy(sample), new_logprob_model, new_loglik_data)
             if self.debug_mumble: print('New best sample found, logprob of model: {0} loglik: {1}'.format(new_logprob_model, new_loglik_data),
                                         file=sys.stderr)
