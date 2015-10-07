@@ -6,6 +6,7 @@ import cython; cimport cython
 
 import pandas as pd
 import sys, copy, random, mimetypes, os.path, gzip
+import logging
 from time import time
 from datetime import datetime
 
@@ -66,6 +67,9 @@ class BaseSampler(object):
                  annealing = False, debug_mumble = False):
         """Initialize the class.
         """
+        if debug_mumble:
+            logging.basicConfig(level=logging.INFO)
+            
         if cl_mode:
             import pyopencl as cl
             import pyopencl.array, pyopencl.tools, pyopencl.clrandom
@@ -181,8 +185,7 @@ class BaseSampler(object):
         if self.best_sample[0] is None:
             self.best_sample = (sample, new_logprob_model, new_loglik_data)
             self.logprob_model, self.loglik_data = new_logprob_model, new_loglik_data            
-            if self.debug_mumble: print('Initial sample generated, logprob of model: {0}, loglik: {1}'.format(new_logprob_model, new_loglik_data),
-                                        file=sys.stderr)
+            logging.info('Initial sample generated, logprob of model: {0}, loglik: {1}'.format(new_logprob_model, new_loglik_data))
             return
 
         # if there's a best sample
@@ -195,8 +198,7 @@ class BaseSampler(object):
             self.best_diff.append(better)
             self.logprob_model, self.loglik_data = new_logprob_model, new_loglik_data            
             self.best_sample = (copy.deepcopy(sample), new_logprob_model, new_loglik_data)
-            if self.debug_mumble: print('New best sample found, logprob of model: {0} loglik: {1}'.format(new_logprob_model, new_loglik_data),
-                                        file=sys.stderr)
+            logging.info('New best sample found, logprob of model: {0} loglik: {1}'.format(new_logprob_model, new_loglik_data))
             return True
         else:
             self.no_improv += 1
@@ -205,7 +207,7 @@ class BaseSampler(object):
     def no_improvement(self):
         if len(self.best_diff) == 0: return False
         if self.no_improv > self.search_tolerance:
-            print('Too little improvement in loglikelihood for %s iterations - Abort searching' % self.search_tolerance, file=sys.stderr)
+            logging.warning('Too little improvement in loglikelihood for %s iterations - Abort searching' % self.search_tolerance)
             return True
         return False
 
