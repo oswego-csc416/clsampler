@@ -9,7 +9,7 @@ import sys, copy, random, mimetypes, os.path, gzip
 from time import time
 from datetime import datetime
 
-from libc.math cimport exp, log, pow
+from libc.math cimport exp, log, pow, round
 from libc.stdlib cimport rand, RAND_MAX
 
 @cython.boundscheck(False)
@@ -57,6 +57,15 @@ def lognormalize(np.ndarray[np.float_t, ndim=1] x, double temp = 1):
         x[i] /= x_sum
 
     return x
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def c_round(double x, int decimal):
+    """A wrapper to round a double to the given decimal place.
+    """
+    cdef double factor = pow(10, decimal)
+    return round(x * factor) / factor
+
 
 class BaseSampler(object):
 
