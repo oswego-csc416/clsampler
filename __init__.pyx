@@ -67,6 +67,24 @@ def c_round(double x, int decimal):
     cdef double factor = pow(10, decimal)
     return round(x * factor) / factor
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def c_round_arr(x, int decimal):
+    """A wrapper to round a double to the given decimal place.
+    """
+    cdef double factor = pow(10, decimal)
+    cdef x_copy = copy.deepcopy(x)
+    cdef int d1, d2
+    #if len(x.shape) > 2: raise NotImplemented("X must be 2 dimensional or less")
+    if len(x.shape) == 1:
+        for d1 in xrange(x.shape[0]):
+            x_copy[d1] = round(x[d1] * factor) / factor
+    if len(x.shape) == 2:
+        for d1 in xrange(x.shape[0]):
+            for d2 in xrange(x.shape[1]):
+                x_copy[d1, d2] = round(x[d1, d2] * factor) / factor
+    return x_copy
+
 
 class BaseSampler(object):
 
