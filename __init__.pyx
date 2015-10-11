@@ -69,18 +69,19 @@ def c_round(double x, int decimal):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def c_round_arr(x, int decimal):
+def c_round_arr(np.ndarray x, int decimal):
     """A wrapper to round a double to the given decimal place.
     """
     cdef double factor = pow(10, decimal)
-    cdef x_copy = copy.deepcopy(x)
     cdef int d1, d2
+    cdef np.ndarray x_copy = np.empty_like(x)
     #if len(x.shape) > 2: raise NotImplemented("X must be 2 dimensional or less")
-    if len(x.shape) == 1:
-        for d1 in xrange(x.shape[0]):
+    s = getattr(x, 'shape')
+    if len(s) == 1:
+        for d1 in xrange(s[0]):
             x_copy[d1] = round(x[d1] * factor) / factor
-    if len(x.shape) == 2:
-        for d1 in xrange(x.shape[0]):
+    if len(s) == 2:
+        for d1 in xrange(s[0]):
             for d2 in xrange(x.shape[1]):
                 x_copy[d1, d2] = round(x[d1, d2] * factor) / factor
     return x_copy
