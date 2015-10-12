@@ -130,9 +130,6 @@ class BaseSampler(object):
         
         return True
 
-    def direct_read_data(self, data):
-        self.data = data
-
     def set_temperature(self, iteration):
         """Set the temperature of simulated annealing as a function of sampling progress.
         """
