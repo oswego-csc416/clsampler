@@ -117,7 +117,9 @@ class BaseSampler(object):
             
         self.data = self.data[obs_vars]
         self.N = self.data.shape[0]
+        return True
 
+    def setup_sample_output(self, filepath):
         # set up references to the file paths
         self.source_filepath = filepath
         self.source_dirname = os.path.dirname(filepath) + '/'
