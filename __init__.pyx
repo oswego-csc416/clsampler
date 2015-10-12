@@ -170,19 +170,18 @@ class BaseSampler(object):
         self.data = self.data[obs_vars]
         self.N = self.data.shape[0]
 
+        return True
+
+    def setup_sample_output(self, filepath):        
         # set up references to the file paths
         self.source_filepath = filepath
         self.source_dirname = os.path.dirname(filepath) + '/'
         self.source_filename = os.path.basename(filepath).split('.')[0]
-
         # set up the name of the output sample file
         self.sample_fn = self.source_dirname + '{0}-{1}-samples-{2}.csv.gz'.format(self.source_filename,
                                                                                    self.__param_str__(),
                                                                                    str(datetime.now()).split('.')[0].replace(' ', '-'))
         return True
-
-    def direct_read_data(self, data):
-        self.data = data
 
     def set_temperature(self, iteration):
         """Set the temperature of simulated annealing as a function of sampling progress.
