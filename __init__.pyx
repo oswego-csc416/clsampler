@@ -149,6 +149,9 @@ class BaseSampler(object):
         self.annealing_temp = 1
         
         self.debug_mumble = debug_mumble
+
+    def __param_str__(self):
+        return type(self).__name__
         
     def read_csv(self, filepath, obs_vars = ['obs'], header = True):
         """Read data from a csv file.
@@ -174,7 +177,7 @@ class BaseSampler(object):
 
         # set up the name of the output sample file
         self.sample_fn = self.source_dirname + '{0}-{1}-samples-{2}.csv.gz'.format(self.source_filename,
-                                                                                   self.__class__.__name__,
+                                                                                   self.__param_str__(),
                                                                                    str(datetime.now()).split('.')[0].replace(' ', '-'))
         return True
 
